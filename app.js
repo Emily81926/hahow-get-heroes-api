@@ -1,13 +1,13 @@
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+  require('dotenv').config()
 }
 
 const express = require('express')
-const app = express();
-const port = process.env.PORT;
+const routes = require('./routes/index')
+const app = express()
+const port = process.env.PORT
 
-app.get("/", (req, res) => res.send('This is going to be api server!'))
-
+app.use(routes)
 app.listen(port, () => console.log(`This server is running on port ${port}`));
 
 module.exports = app;
