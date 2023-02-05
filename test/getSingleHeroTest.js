@@ -84,7 +84,7 @@ describe("get single hero authenticated request", () => {
           //取得的hero資料id為1
           res.body["id"].should.equal("1");
           //不應該有profile資料出現
-          expect(res.body).to.not.include({ profile: {} });
+          expect(res.body).to.not.have.any.keys("profile");
           done();
         });
     });
@@ -106,7 +106,7 @@ describe("get single hero authenticated request", () => {
           //取得的hero資料id為1
           res.body["id"].should.equal("1");
           //不應該有profile資料出現
-          expect(res.body).to.not.include({ profile: {} });
+          expect(res.body).to.not.have.any.keys("profile");
           done();
         });
     });
