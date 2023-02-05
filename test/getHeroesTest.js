@@ -67,6 +67,8 @@ describe("get all heroes authenticated request", () => {
           //有取得多筆heroes資料，以取得前兩筆資料id 1跟id 2的方式來驗證
           res.body["heroes"][0]["id"].should.equal("1");
           res.body["heroes"][1]["id"].should.equal("2");
+          //不應該有profile資料出現
+          expect(res.body["heroes"][0]).to.not.have.any.keys("profile");
           done();
         });
     });
@@ -88,6 +90,8 @@ describe("get all heroes authenticated request", () => {
           //有取得多筆heroes資料，以取得前兩筆資料id 1跟id 2的方式來驗證
           res.body["heroes"][0]["id"].should.equal("1");
           res.body["heroes"][1]["id"].should.equal("2");
+          //不應該有profile資料出現
+          expect(res.body["heroes"][0]).to.not.have.any.keys("profile");
           done();
         });
     });
