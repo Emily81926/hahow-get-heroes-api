@@ -13,6 +13,20 @@ const heroData = {
     });
     return callback(heroes.data);
   },
+
+  //取得單一hero的資料
+  getSingleHero: async(req, res, callback) => {
+    const hero = await axios({
+      method: "get",
+      baseURL: process.env.HAHOWBASEURL,
+      //從req.params取得heroId
+      url: `/heroes/${req.params["heroId"]}`,
+      "Content-Type": "application/json",
+      "Accept": "application / json",
+    });
+
+    return callback(hero.data);
+  }
 };
 
 module.exports = heroData;
