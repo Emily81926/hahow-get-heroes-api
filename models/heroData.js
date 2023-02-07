@@ -1,5 +1,6 @@
 const axios = require("axios");
 const Redis = require("redis");
+const redisData = require('./redisData')
 
 const redisClient = Redis.createClient();
 //設定redis的expiration time為3600秒
