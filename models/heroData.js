@@ -1,31 +1,67 @@
 const axios = require("axios");
+const Redis = require("redis");
+
+const redisClient = Redis.createClient();
+//設定redis的expiration time為3600秒
+const DEFAULT_EXPIRATION = 3600;
 
 const heroData = {
   //取得所有heroes的資料
   getAllHeroes: async (req, res, callback) => {
-    const heroes = await axios({
-      method: "get",
-      //保護該baseURL不被他人使用
-      baseURL: process.env.HAHOWBASEURL,
-      url: "/heroes",
-      "Content-Type": "application/json",
-      Accept: "application / json",
+    //先查看Redis內部是否有檔案
+    redisClient.get("heroes", async (error, heroes) => {
+      if (error) console.error(error);
+      //如果redis有資料，就從redis取資料
+      if (heroes != null) {
+        return callback(JSON.parse(heroes));
+      } else {
+        //如果沒有，則axios取得資料後，存入redis
+        const heroes = await axios({
+          method: "get",
+          //保護該baseURL不被他人使用
+          baseURL: process.env.HAHOWBASEURL,
+          url: "/heroes",
+          "Content-Type": "application/json",
+          Accept: "application / json",
+        });
+
+        //將取得的資料放進Redis，縮短取用資料的時間
+        redisClient.setex(
+          "heroes",
+          DEFAULT_EXPIRATION,
+          JSON.stringify(heroes.data)
+        );
+        return callback(heroes.data);
+      }
     });
-    return callback(heroes.data);
   },
 
   //取得單一hero的資料
   getSingleHero: async (req, res, callback) => {
-    const hero = await axios({
-      method: "get",
-      baseURL: process.env.HAHOWBASEURL,
-      //從req.params取得heroId
-      url: `/heroes/${req.params["heroId"]}`,
-      "Content-Type": "application/json",
-      Accept: "application / json",
+    redisClient.get(`heroes/${req.params["heroId"]}`, async (error, hero) => {
+      if (error) console.error(error);
+      //如果redis有資料，就從redis取資料
+      if (hero != null) {
+        return callback(JSON.parse(hero));
+      } else {
+        //呼叫hero api
+        const hero = await axios({
+          method: "get",
+          baseURL: process.env.HAHOWBASEURL,
+          //從req.params取得heroId
+          url: `/heroes/${req.params["heroId"]}`,
+          "Content-Type": "application/json",
+          Accept: "application / json",
+        });
+        //將取得的資料放進Redis，縮短取用資料的時間
+        redisClient.setex(
+          `heroes/${req.params["heroId"]}`,
+          DEFAULT_EXPIRATION,
+          JSON.stringify(hero.data)
+        );
+        return callback(hero.data);
+      }
     });
-
-    return callback(hero.data);
   },
 
   //取得單一hero profile資料
