@@ -108,12 +108,53 @@ const heroData = {
   },
 
   //取得成功驗證的所有heroes的profiles
-  getHeroesProfile: async (req, res, callback) => {
+  getHeroesProfiles: async (req, res, callback) => {
     redisClient.get("heroes/profiles", async (error, heroes) => {
       if (error) console.error(error);
       //如果redis有資料，就從redis取資料
       if (heroes != null) {
         return callback(JSON.parse(heroes));
+      } else {
+        //如果redis沒有資料就呼叫axios 取得資料
+        const authHeroes = [];
+        for (let i = 1; i <= 4; i++) {
+          //取得該id的hero資料
+          let hero = await axios({
+            method: "get",
+            baseURL: process.env.HAHOWBASEURL,
+            url: `/heroes/${i}`,
+            "Content-Type": "application/json",
+            Accept: "application / json",
+          });
+
+          while (hero.data["code"]) {
+            hero = await axios({
+              method: "get",
+              baseURL: process.env.HAHOWBASEURL,
+              url: `/heroes/${i}`,
+              "Content-Type": "application/json",
+              Accept: "application / json",
+            });
+          }
+
+          //取得該id的profile資料
+          const profile = await axios({
+            method: "get",
+            baseURL: process.env.HAHOWBASEURL,
+            url: `/heroes/${i}/profile`,
+            "Content-Type": "application/json",
+            Accept: "application / json",
+          });
+
+          hero.data["profile"] = profile.data;
+          //將data放入authHeroes array中
+          authHeroes.push(hero.data);
+        }
+        //將heroes profiles放入redis方便快速拿取
+        await redisClient.setAsync(
+          "heroes/profiles",
+          JSON.stringify(authHeroes)
+        );
       }
     });
   },

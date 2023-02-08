@@ -14,7 +14,7 @@ const heroesService = {
       req.headers["name"] === process.env.HAHOWNAME &&
       req.headers["password"] === process.env.HAHOWPASSWORD
     ) {
-      await heroData.getHeroesProfile(req, res, (data) => {
+      await heroData.getHeroesProfiles(req, res, (data) => {
         return callback({ status: 200, data: { heroes: data} });
       });
     } else {
