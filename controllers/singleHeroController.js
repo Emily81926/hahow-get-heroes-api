@@ -9,6 +9,9 @@ const singleHeroController = {
         await singleHeroesService.getSingleProfile(req, res, (data) => {
           return res.status(data.status).json(data.data || data.message);
         });
+      } else if (req.headers["show"]) {
+        //如果headers有錯誤的參數，則回覆400
+        return res.status(400).json("invalid request framing");
       } else {
         //如果headers找不到name，則直接給予單一hero的basic資料
         await singleHeroesService.getSingleData(req, res, (data) => {
