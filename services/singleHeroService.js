@@ -10,7 +10,7 @@ const singleHeroesService = {
     });
   },
 
-  //去得單一hero的profile資料
+  //取得單一hero的profile資料
   getSingleProfile: async (req, res, callback) => {
     if (
       req.headers["name"] === process.env.HAHOWNAME &&

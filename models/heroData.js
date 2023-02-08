@@ -106,6 +106,17 @@ const heroData = {
       }
     );
   },
+
+  //取得成功驗證的所有heroes的profiles
+  getHeroesProfile: async (req, res, callback) => {
+    redisClient.get("heroes/profiles", async (error, heroes) => {
+      if (error) console.error(error);
+      //如果redis有資料，就從redis取資料
+      if (heroes != null) {
+        return callback(JSON.parse(heroes));
+      }
+    });
+  },
 };
 
 module.exports = heroData;
