@@ -5,7 +5,7 @@ const singleHeroController = {
   getSingleData: async (req, res) => {
     try {
       //如果header有Name，則進入驗證api
-      if (req.headers["name"]) {
+      if (req.headers["name"] || req.headers["password"]) {
         await singleHeroesService.getSingleProfile(req, res, (data) => {
           return res.status(data.status).json(data.data || data.message);
         });
