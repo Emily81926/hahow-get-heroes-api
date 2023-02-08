@@ -17,7 +17,7 @@ const redisData = async () => {
   });
   //將取得的heroes資料放進redis
   await redisClient.setAsync("heroes", JSON.stringify(heroes.data));
-  console.log("heroes資料已放進redis")
+  console.log("heroes資料已放進redis");
 
   //2.將每筆hero資料分別放入redis
   for (let i = 1; i <= 4; i++) {
@@ -64,6 +64,18 @@ const redisData = async () => {
     );
   }
   console.log("single hero profile 資料已放進redis");
+
+  //4.將所有heroes的profile資料放進redis
+  const authHeroes = [];
+  for (let i = 1; i <= 4; i++) {
+    //拿取單一hero profile資料
+    const profile = await redisClient.getAsync(`heroes/${i}/profiles`);
+    //將data放入authHeroes array中
+    authHeroes.push(JSON.parse(profile));
+  }
+  await redisClient.setAsync("heroes/profiles", JSON.stringify(authHeroes));
+
+  console.log("all hero profile 資料已放進redis");
 };
 
 //server一啟動，自動串連hero api，將hero資料放進redis方便快速拿取
