@@ -1,5 +1,4 @@
 const Redis = require("redis");
-const axios = require("axios");
 const { getAxiosRequest } = require("../_helper");
 const { promisifyAll } = require("bluebird");
 //用promisifyAll打包redis的async await程式碼

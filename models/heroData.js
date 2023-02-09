@@ -1,7 +1,6 @@
-const axios = require("axios");
 const Redis = require("redis");
 const redisData = require("./redisData");
-
+const { getAxiosRequest } = require("../_helper");
 const redisClient = Redis.createClient();
 //設定redis的expiration time為3600秒
 const DEFAULT_EXPIRATION = 3600;
@@ -17,15 +16,7 @@ const heroData = {
         return callback(JSON.parse(heroes));
       } else {
         //如果沒有，則axios取得資料後，存入redis
-        const heroes = await axios({
-          method: "get",
-          //保護該baseURL不被他人使用
-          baseURL: process.env.HAHOWBASEURL,
-          url: "/heroes",
-          "Content-Type": "application/json",
-          Accept: "application / json",
-        });
-
+        const heroes = await getAxiosRequest("/heroes");
         //將取得的資料放進Redis，縮短取用資料的時間
         redisClient.setex(
           "heroes",
@@ -39,24 +30,22 @@ const heroData = {
 
   //取得單一hero的資料
   getSingleHero: async (req, res, callback) => {
-    redisClient.get(`heroes/${req.params["heroId"]}`, async (error, hero) => {
+    const heroId = req.params["heroId"];
+    redisClient.get(`heroes/${heroId}`, async (error, hero) => {
       if (error) console.error(error);
       //如果redis有資料，就從redis取資料
       if (hero != null) {
         return callback(JSON.parse(hero));
       } else {
         //呼叫hero api
-        const hero = await axios({
-          method: "get",
-          baseURL: process.env.HAHOWBASEURL,
-          //從req.params取得heroId
-          url: `/heroes/${req.params["heroId"]}`,
-          "Content-Type": "application/json",
-          Accept: "application / json",
-        });
+        let hero = await getAxiosRequest(`/heroes/${heroId}`);
+        //如果出現錯誤code = 1000，就繼續呼叫該api，取到值為止
+        while (hero.data["code"]) {
+          hero = await getAxiosRequest(`/heroes/${heroId}`);
+        }
         //將取得的資料放進Redis，縮短取用資料的時間
         redisClient.setex(
-          `heroes/${req.params["heroId"]}`,
+          `heroes/${heroId}`,
           DEFAULT_EXPIRATION,
           JSON.stringify(hero.data)
         );
@@ -67,44 +56,33 @@ const heroData = {
 
   //取得單一hero profile資料
   getSingleProfile: async (req, res, callback) => {
-    redisClient.get(
-      `heroes/${req.params["heroId"]}/profiles`,
-      async (error, profile) => {
-        if (error) console.error(error);
-        //如果redis有資料，就從redis取資料
-        if (profile != null) {
-          return callback(JSON.parse(profile));
-        } else {
-          //如果redis沒有資料就呼叫api，並將資料放進redis
-          const hero = await axios({
-            method: "get",
-            baseURL: process.env.HAHOWBASEURL,
-            //從req.params取得heroId
-            url: `/heroes/${req.params["heroId"]}`,
-            "Content-Type": "application/json",
-            Accept: "application / json",
-          });
-
-          //取得該id的profile資料
-          const profile = await axios({
-            method: "get",
-            baseURL: process.env.HAHOWBASEURL,
-            url: `/heroes/${req.params["heroId"]}/profile`,
-            "Content-Type": "application/json",
-            Accept: "application / json",
-          });
-          //將兩個資料做合併
-          hero.data["profile"] = profile.data;
-          //資料放入redis
-          redisClient.setex(
-            `heroes/${req.params["heroId"]}`,
-            DEFAULT_EXPIRATION,
-            JSON.stringify(hero.data)
-          );
-          return callback(hero.data);
+    const heroId = req.params["heroId"];
+    redisClient.get(`heroes/${heroId}/profiles`, async (error, profile) => {
+      if (error) console.error(error);
+      //如果redis有資料，就從redis取資料
+      if (profile != null) {
+        return callback(JSON.parse(profile));
+      } else {
+        //如果redis沒有資料就呼叫api，並將資料放進redis
+        let hero = await getAxiosRequest(`/heroes/${heroId}`);
+        //如果出現錯誤code = 1000，就繼續呼叫該api，取到值為止
+        while (hero.data["code"]) {
+          hero = await getAxiosRequest(`/heroes/${heroId}`);
         }
+
+        //取得該id的profile資料
+        const profile = await getAxiosRequest(`/heroes/${heroId}/profile`);
+        //將兩個資料做合併
+        hero.data["profile"] = profile.data;
+        //資料放入redis
+        redisClient.setex(
+          `heroes/${heroId}/profiles`,
+          DEFAULT_EXPIRATION,
+          JSON.stringify(hero.data)
+        );
+        return callback(hero.data);
       }
-    );
+    });
   },
 
   //取得成功驗證的所有heroes的profiles
@@ -119,42 +97,25 @@ const heroData = {
         const authHeroes = [];
         for (let i = 1; i <= 4; i++) {
           //取得該id的hero資料
-          let hero = await axios({
-            method: "get",
-            baseURL: process.env.HAHOWBASEURL,
-            url: `/heroes/${i}`,
-            "Content-Type": "application/json",
-            Accept: "application / json",
-          });
+          let hero = await getAxiosRequest(`/heroes/${i}`);
 
           while (hero.data["code"]) {
-            hero = await axios({
-              method: "get",
-              baseURL: process.env.HAHOWBASEURL,
-              url: `/heroes/${i}`,
-              "Content-Type": "application/json",
-              Accept: "application / json",
-            });
+            hero = await getAxiosRequest(`/heroes/${i}`);
           }
 
           //取得該id的profile資料
-          const profile = await axios({
-            method: "get",
-            baseURL: process.env.HAHOWBASEURL,
-            url: `/heroes/${i}/profile`,
-            "Content-Type": "application/json",
-            Accept: "application / json",
-          });
-
+          const profile = await getAxiosRequest(`/heroes/${i}/profile`);
           hero.data["profile"] = profile.data;
           //將data放入authHeroes array中
           authHeroes.push(hero.data);
         }
         //將heroes profiles放入redis方便快速拿取
-        await redisClient.setAsync(
+        await redisClient.setex(
           "heroes/profiles",
+          DEFAULT_EXPIRATION,
           JSON.stringify(authHeroes)
         );
+        return callback(authHeroes);
       }
     });
   },
