@@ -155,7 +155,26 @@ flushall
 ### 專案架構圖
 如圖
 
-![image](暫無)
+![image](https://github.com/Emily81926/hahow-get-heroes-api/blob/ef886ab79c0bb292d93c7a42a08e33c2fb4d1681/%E5%B0%88%E6%A1%88%E6%9E%B6%E6%A7%8B%E5%9C%96.jpeg)
+
+#### Apps
+> 專案的主程式，內部引用專案中需要的套件及模組。當接收到request時，會分派到routes。
+
+Routes 
+> 當接收到request，會將request分配到對應的router，並分派到對應的controller。
+
+Controllers
+> 當controller接收到request，會引用所需要的service。
+
+Services
+> 主要的商業邏輯寫在service中，接收到controller的request，會依照撰寫的邏輯到models取用所需的資料，並回傳給controller。
+
+Models
+> 資料儲存區。當service發送request，models將相對應的資料返回service。
+> 在此中案中主要資料索取區為 `heroData.js`。
+> `RedisData.js` 功能為當server一啟動，會自動呼叫所有API，並將data儲存在redis中供快速取用。
+
+<br />
 
 ### 使用第三方library或套件
 * Express
@@ -198,6 +217,9 @@ flushall
 
 > 當某區塊的程式碼為處理特殊情況，利用註解說明該程式碼的功能，可以快速理解該程式碼的用途
 
+<br />
+<br />
+
 ## 專案過程
 
 ### 邊際情況處理
@@ -207,6 +229,7 @@ flushall
 
 * Authenticated List Heroes [GET] `/heroes` 新增 *如果只有輸入Name或是Password* 的狀況，回傳401及 "name or password is incorrect"
 
+<br />
 
 ### 遇到的問題及解決方法
 1. 需求理解花較多時間
