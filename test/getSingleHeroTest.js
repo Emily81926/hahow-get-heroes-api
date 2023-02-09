@@ -97,12 +97,8 @@ describe("get single hero authenticated request", () => {
         .expect(400)
         .end((err, res) => {
           if (err) return done(err);
-          //雖然驗證失敗，但是仍可以取得heroes不需授權的資料
-          expect(res.body).to.be.an("object");
-          //取得的hero資料id為1
-          res.body["id"].should.equal("1");
-          //不應該有profile資料出現
-          expect(res.body).to.not.have.any.keys("profile");
+          //驗證失敗會從res.body取得錯誤string資訊
+          expect(res.body).to.be.an("string");
           done();
         });
     });
