@@ -36,8 +36,8 @@ describe("get all heroes authenticated request", () => {
         .get("/heroes")
         .set("Accept", "application/json")
         .set("Content-Type", "application/json")
-        .set("Name", "hahow")
-        .set("Password", "rocks")
+        .set("Name", process.env.HAHOWNAME)
+        .set("Password", process.env.HAHOWPASSWORD)
         .expect(200)
         .end((err, res) => {
           if (err) return done(err);
@@ -57,7 +57,7 @@ describe("get all heroes authenticated request", () => {
         .get("/heroes")
         .set("Accept", "application/json")
         .set("Content-Type", "application/json")
-        .set("Name", "hahow")
+        .set("Name", process.env.HAHOWNAME)
         .set("Password", "rockssss")
         .expect(401)
         .end((err, res) => {
